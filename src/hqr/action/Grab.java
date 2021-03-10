@@ -126,7 +126,7 @@ public class Grab {
 								callOps("fail to get the magnet url");
 							}
 							else {
-								String fullPath = baseDir+System.getProperty("file.separator")+strYYYYMM+System.getProperty("file.separator")+folder;
+								String fullPath = baseDir+System.getProperty("file.separator")+strYYYYMM+System.getProperty("file.separator")+"resource"+System.getProperty("file.separator")+folder;
 								
 								SaveImgAndMagnet save = new SaveImgAndMagnet(img.attr("src"), fullPath, magnetUri, httpclient, httpClientContext);
 								save.execute();
@@ -134,7 +134,7 @@ public class Grab {
 								String []arr2 = img.attr("src").split("/");
 								String fileName = arr2[arr2.length-1];
 								
-								writeBodyContent("<img src=\""+imgBaseDir+"/"+strYYYYMM+"/"+folder+"/"+fileName+"\" border=\"0\"><br>");
+								writeBodyContent("<img src=\""+imgBaseDir+"/"+strYYYYMM+"/resource/"+folder+"/"+fileName+"\" border=\"0\"><br>");
 							}
 						}
 						writeBodyContent("<br>下载 <a href=\""+magnetUri+"\" target=\"_blank\">"+magnetUri+"</a>");
