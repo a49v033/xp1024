@@ -22,6 +22,8 @@ public class Grab {
 	private String author;
 	private String baseDir;
 	private String imgBaseDir;
+	private String aria2;
+	private String token;
 	private CloseableHttpClient httpclient;
 	private HttpClientContext httpClientContext;
 	
@@ -30,14 +32,50 @@ public class Grab {
 	private SimpleDateFormat yyyymm = new SimpleDateFormat("yyyyMM");
 	private String strYYYYMM = "999901";
 	
-	public Grab(String topicUrl, String subject, String author, String baseDir, String imgBaseDir, CloseableHttpClient httpclient,
-			HttpClientContext httpClientContext) {
+	private String js = "	<script lang=\"javascript\" type=\"text/javascript\">\r\n" + 
+			"		function download(e) {\r\n" + 
+			"			var magneturl = e.getAttribute(\"magnet-url\")\r\n" + 
+			"			var data1 = {\r\n" + 
+			"				\"jsonrpc\":2,\r\n" + 
+			"				\"id\":\"webui\",\r\n" + 
+			"				\"method\":\"system.multicall\",\r\n" + 
+			"				\"params\":[\r\n" + 
+			"					[\r\n" + 
+			"						{\r\n" + 
+			"							\"methodName\":\"aria2.addUri\",\r\n" + 
+			"							\"params\":[\"token:${token}\",[magneturl],{}]\r\n" + 
+			"						}\r\n" + 
+			"					]\r\n" + 
+			"				]\r\n" + 
+			"			};\r\n" + 
+			"			$.ajax({\r\n" + 
+			"				type : \"post\",\r\n" + 
+			"				url : \"${jsonrpc}\",\r\n" + 
+			"				dataType:\"json\",\r\n" + 
+			"				//contentType: \"application/json\",\r\n" + 
+			"				data : JSON.stringify(data1),\r\n" + 
+			"				success : function(result) {\r\n" + 
+			"					alert(\"任务已成功添加，任务ID \"+result.result);\r\n" + 
+			"				},\r\n" + 
+			"				error : function(){\r\n" + 
+			"					alert(\"无法添加任务，请确认aria2设置是否正确\");\r\n" + 
+			"				}\r\n" + 
+			"			});\r\n" + 
+			"			\r\n" + 
+			"		}\r\n" + 
+			"	</script>";
+	
+	
+	public Grab(String topicUrl, String subject, String author, String baseDir, String imgBaseDir, String aria2, String token, 
+			CloseableHttpClient httpclient, HttpClientContext httpClientContext) {
 		super();
 		this.topicUrl = topicUrl;
 		this.subject = subject;
 		this.author = author;
 		this.baseDir = baseDir;
 		this.imgBaseDir = imgBaseDir;
+		this.aria2 = aria2;
+		this.token = token;
 		this.httpclient = httpclient;
 		this.httpClientContext = httpClientContext;
 		
@@ -54,13 +92,10 @@ public class Grab {
 	
 	private void handle2() {
 		System.out.print(topicUrl+"|"+subject+"|"+author);
-		
+		HttpGet get = new HttpGet(topicUrl);
 		String html = "";
-		try {
-			HttpGet get = new HttpGet(topicUrl);
-			CloseableHttpResponse cl = httpclient.execute(get, httpClientContext);
+		try(CloseableHttpResponse cl = httpclient.execute(get, httpClientContext);) {
 			html = EntityUtils.toString(cl.getEntity(), "UTF-8");
-			cl.close();
 		}
 		catch (Exception e) {
 			e.printStackTrace();
@@ -137,7 +172,7 @@ public class Grab {
 								writeBodyContent("<img src=\""+imgBaseDir+"/"+strYYYYMM+"/resource/"+folder+"/"+fileName+"\" border=\"0\"><br>");
 							}
 						}
-						writeBodyContent("<br>下载 <a href=\""+magnetUri+"\" target=\"_blank\">"+magnetUri+"</a>");
+						writeBodyContent("<br>下载 <a href=\""+magnetUri+"\" target=\"_blank\">"+magnetUri+"</a> <input type=\"button\" magnet-url=\""+magnetUri+"\" onclick=\"download(this);\" value=\"aria2\" />");
 						writeBodyContent("</div><br><br>");
 					}
 				}
@@ -147,6 +182,9 @@ public class Grab {
 
 			}
 			
+			js = js.replaceAll("\\$\\{token\\}", token);
+			js = js.replaceAll("\\$\\{jsonrpc\\}", aria2);
+			writeBodyContent(js);
 			writeBodyEnd();
 			writeHtmlEnd();
 			
@@ -176,11 +214,9 @@ public class Grab {
 	}
 	
 	private String getMagnetInfo(String url) {
-		try {
-			HttpGet get = new HttpGet(url);
-			CloseableHttpResponse cl = httpclient.execute(get, httpClientContext);
+		HttpGet get = new HttpGet(url);
+		try(CloseableHttpResponse cl = httpclient.execute(get, httpClientContext);) {
 			String html = EntityUtils.toString(cl.getEntity(), "UTF-8");
-			cl.close();
 			
 			Document bodys = Jsoup.parse(html);
 			Elements eles = bodys.select(".uk-button");
@@ -215,7 +251,7 @@ public class Grab {
 	}
 	
 	private void writeHeaderEnd() {
-		html.append("</head>");
+		html.append("<script src=\"http://libs.baidu.com/jquery/2.0.0/jquery.min.js\"></script></head>");
 	}
 	
 	private void writeBodyStart() {

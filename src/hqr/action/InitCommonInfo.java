@@ -24,15 +24,19 @@ public class InitCommonInfo {
 	private String processDt;
 	private String baseDir;
 	private String imgBaseDir;
+	private String aria2;
+	private String token;
 	private SimpleDateFormat yyyyMMddhhmm = new SimpleDateFormat("yyyy-MM-dd hh:mm");
 	
-	public InitCommonInfo(String host, String startUrl, String lastRunDt, String baseDir, String imgBaseDir) {
+	public InitCommonInfo(String host, String startUrl, String lastRunDt, String baseDir, String imgBaseDir, String aria2, String token) {
 		super();
 		this.host = host;
 		this.startUrl = startUrl;
 		this.lastRunDt = lastRunDt;
 		this.baseDir = baseDir;
 		this.imgBaseDir = imgBaseDir;
+		this.aria2 = aria2;
+		this.token = token;
 	}
 	
 	public void execute() {
@@ -49,8 +53,6 @@ public class InitCommonInfo {
 				String html = EntityUtils.toString(cl.getEntity(), "UTF-8");
 				
 				if(cl.getStatusLine().getStatusCode()==200) {
-					cl.close();
-					
 					Document bodys = Jsoup.parse(html);
 					//class = tr3 , then select all td
 					Elements trs = bodys.select(".tr3");
@@ -71,7 +73,7 @@ public class InitCommonInfo {
 										//save the newest issue date to lastRunDt
 										processDt = issueDt;
 									}
-									Grab gb = new Grab(topicUrl, subject, author, baseDir, imgBaseDir, httpclient, httpClientContext);
+									Grab gb = new Grab(topicUrl, subject, author, baseDir, imgBaseDir, aria2, token, httpclient, httpClientContext);
 									gb.execute();
 								}
 								else {
@@ -136,6 +138,8 @@ public class InitCommonInfo {
 			bw.write("lastRunDt->"+processDt+System.getProperty("line.separator"));
 			bw.write("baseDir->"+baseDir+System.getProperty("line.separator"));
 			bw.write("imgBaseDir->"+imgBaseDir+System.getProperty("line.separator"));
+			bw.write("aria2->"+aria2+System.getProperty("line.separator"));
+			bw.write("token->"+token+System.getProperty("line.separator"));
 			bw.flush();
 		}
 		catch (Exception e) {

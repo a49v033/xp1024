@@ -16,6 +16,8 @@ public class MainApp {
 			String lastRunDt = "";
 			String baseDir = "";
 			String imgBaseDir = "";
+			String aria2 = "";
+			String token = "";
 			while((content=br.readLine())!=null) {
 				String []arr = content.split("->");
 				if("host".equals(arr[0])) {
@@ -33,11 +35,17 @@ public class MainApp {
 				else if("imgBaseDir".equals(arr[0])) {
 					imgBaseDir = arr[1];
 				}
+				else if("aria2".equals(arr[0])) {
+					aria2 = arr[1];
+				}
+				else if("token".equals(arr[0])) {
+					token = arr[1];
+				}
 			}
 			
 			br.close();
 			
-			InitCommonInfo grab = new InitCommonInfo(host, startUrl, lastRunDt, baseDir, imgBaseDir);
+			InitCommonInfo grab = new InitCommonInfo(host, startUrl, lastRunDt, baseDir, imgBaseDir, aria2, token);
 			grab.execute();
 			
 		} catch (Exception e) {
