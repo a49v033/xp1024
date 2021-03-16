@@ -66,16 +66,15 @@ public class Grab {
 			"	</script>";
 	
 	
-	public Grab(String topicUrl, String subject, String author, String baseDir, String imgBaseDir, String aria2, String token, 
-			CloseableHttpClient httpclient, HttpClientContext httpClientContext) {
+	public Grab(String topicUrl, String subject, String author, CloseableHttpClient httpclient, HttpClientContext httpClientContext) {
 		super();
 		this.topicUrl = topicUrl;
 		this.subject = subject;
 		this.author = author;
-		this.baseDir = baseDir;
-		this.imgBaseDir = imgBaseDir;
-		this.aria2 = aria2;
-		this.token = token;
+		this.baseDir = System.getProperty("baseDir");
+		this.imgBaseDir = System.getProperty("imgBaseDir");
+		this.aria2 = System.getProperty("aria2");
+		this.token = System.getProperty("token");
 		this.httpclient = httpclient;
 		this.httpClientContext = httpClientContext;
 		
@@ -155,7 +154,7 @@ public class Grab {
 						String []params = magnetUri.split("&");
 						String []kv = params[1].split("=");
 						String folder = kv[1];
-						writeBodyContent("<div><b>番号： <font color=\"red\">"+folder+"</font></b><br>");
+						writeBodyContent("<div><b>番号：  <font color=\"red\">"+folder+"</font></b><br>");
 						for (Element img : imgs) {
 							if("".equals(magnetUri)) {
 								callOps("fail to get the magnet url");

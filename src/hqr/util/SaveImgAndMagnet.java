@@ -16,7 +16,7 @@ public class SaveImgAndMagnet {
 	private String magnet;
 	private CloseableHttpClient httpclient;
 	private HttpClientContext httpClientContext;
-	
+	private String skipIfExist = "Y";
 	
 	public SaveImgAndMagnet(String imgUrl, String path, String magnet, CloseableHttpClient httpclient, HttpClientContext httpClientContext) {
 		super();
@@ -25,6 +25,7 @@ public class SaveImgAndMagnet {
 		this.magnet = magnet;
 		this.httpclient = httpclient;
 		this.httpClientContext = httpClientContext;
+		this.skipIfExist = System.getProperty("skipIfExist");
 
 	}
 	
@@ -49,7 +50,7 @@ public class SaveImgAndMagnet {
 		HttpGet get = new HttpGet(imgUrl);
 		
 		File f = new File(folder+System.getProperty("file.separator")+fileName);
-		if(!f.exists()) {
+		if(!f.exists()||(f.exists()&&"N".equals(skipIfExist))) {
 			try(
 					CloseableHttpResponse cl = httpclient.execute(get, httpClientContext);
 					FileOutputStream fos = new FileOutputStream((new File(folder+System.getProperty("file.separator")+fileName)));
