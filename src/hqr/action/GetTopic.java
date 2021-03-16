@@ -131,6 +131,7 @@ public class GetTopic {
 		newProp.setProperty("imgBaseDir", imgBaseDir);
 		newProp.setProperty("aria2", aria2);
 		newProp.setProperty("token", token);
+		newProp.setProperty("skipIfExist", token);
 		
 		try {
 			newProp.store(new FileWriter("config.dat"), "Update last run date");
