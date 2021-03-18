@@ -16,7 +16,7 @@ public class SaveImgAndMagnet {
 	private String magnet;
 	private CloseableHttpClient httpclient;
 	private HttpClientContext httpClientContext;
-	
+	private String skipIfExist = "Y";
 	
 	public SaveImgAndMagnet(String imgUrl, String path, String magnet, CloseableHttpClient httpclient, HttpClientContext httpClientContext) {
 		super();
@@ -25,6 +25,7 @@ public class SaveImgAndMagnet {
 		this.magnet = magnet;
 		this.httpclient = httpclient;
 		this.httpClientContext = httpClientContext;
+		this.skipIfExist = System.getProperty("skipIfExist");
 
 	}
 	
@@ -47,14 +48,22 @@ public class SaveImgAndMagnet {
 		String []arr = imgUrl.split("/");
 		String fileName = arr[arr.length-1];
 		HttpGet get = new HttpGet(imgUrl);
-		try(
-			CloseableHttpResponse cl = httpclient.execute(get, httpClientContext);
-			FileOutputStream fos = new FileOutputStream((new File(folder+System.getProperty("file.separator")+fileName)));
-		){
-			cl.getEntity().writeTo(fos);
+		
+		File f = new File(folder+System.getProperty("file.separator")+fileName);
+		if(!f.exists()||(f.exists()&&"N".equals(skipIfExist))) {
+			try(
+					CloseableHttpResponse cl = httpclient.execute(get, httpClientContext);
+					FileOutputStream fos = new FileOutputStream((new File(folder+System.getProperty("file.separator")+fileName)));
+				){
+					cl.getEntity().writeTo(fos);
+					fos.flush();
+				}
+				catch (Exception e) {
+					e.printStackTrace();
+				}
 		}
-		catch (Exception e) {
-			e.printStackTrace();
+		else {
+			System.out.println(folder+System.getProperty("file.separator")+fileName+" exist, skip it");
 		}
 	}
 	

@@ -1,10 +1,9 @@
 package hqr.action;
 
-import java.io.BufferedWriter;
-import java.io.File;
 import java.io.FileWriter;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Properties;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.protocol.HttpClientContext;
@@ -17,22 +16,25 @@ import org.jsoup.select.Elements;
 
 import hqr.util.Brower;
 
-public class InitCommonInfo {
+public class GetTopic {
 	private String host;
 	private String startUrl;
 	private String lastRunDt;
 	private String processDt;
 	private String baseDir;
 	private String imgBaseDir;
+	private String aria2;
+	private String token;
 	private SimpleDateFormat yyyyMMddhhmm = new SimpleDateFormat("yyyy-MM-dd hh:mm");
 	
-	public InitCommonInfo(String host, String startUrl, String lastRunDt, String baseDir, String imgBaseDir) {
-		super();
-		this.host = host;
-		this.startUrl = startUrl;
-		this.lastRunDt = lastRunDt;
-		this.baseDir = baseDir;
-		this.imgBaseDir = imgBaseDir;
+	public GetTopic() {
+		this.host = System.getProperty("host");
+		this.startUrl = System.getProperty("startUrl");
+		this.lastRunDt = System.getProperty("lastRunDt");
+		this.baseDir = System.getProperty("baseDir");
+		this.imgBaseDir = System.getProperty("imgBaseDir");
+		this.aria2 = System.getProperty("aria2");
+		this.token = System.getProperty("token");
 	}
 	
 	public void execute() {
@@ -49,8 +51,6 @@ public class InitCommonInfo {
 				String html = EntityUtils.toString(cl.getEntity(), "UTF-8");
 				
 				if(cl.getStatusLine().getStatusCode()==200) {
-					cl.close();
-					
 					Document bodys = Jsoup.parse(html);
 					//class = tr3 , then select all td
 					Elements trs = bodys.select(".tr3");
@@ -71,7 +71,7 @@ public class InitCommonInfo {
 										//save the newest issue date to lastRunDt
 										processDt = issueDt;
 									}
-									Grab gb = new Grab(topicUrl, subject, author, baseDir, imgBaseDir, httpclient, httpClientContext);
+									Grab gb = new Grab(topicUrl, subject, author, httpclient, httpClientContext);
 									gb.execute();
 								}
 								else {
@@ -120,26 +120,24 @@ public class InitCommonInfo {
 	}
 	
 	/*	
-	 * File content:
-	 * host->https://e1.a6def2ef910.pw/pw
-	 * startUrl->https://e1.a6def2ef910.pw/pw/thread.php?fid=3&page=
-	 * lastRunDt->2021-03-04 15:09
-	 * baseDir->D:\\temp
-	 * imgBaseDir->D:\\temp
+	 * Save the property file again with the new lastRunDt
 	 */
 	private void updateConfig() {
-		try(
-			BufferedWriter bw = new BufferedWriter(new FileWriter(new File("config.dat")));
-		){
-			bw.write("host->"+host+System.getProperty("line.separator"));
-			bw.write("startUrl->"+startUrl+System.getProperty("line.separator"));
-			bw.write("lastRunDt->"+processDt+System.getProperty("line.separator"));
-			bw.write("baseDir->"+baseDir+System.getProperty("line.separator"));
-			bw.write("imgBaseDir->"+imgBaseDir+System.getProperty("line.separator"));
-			bw.flush();
+		Properties newProp = new Properties();
+		newProp.setProperty("host", host);
+		newProp.setProperty("startUrl", startUrl);
+		newProp.setProperty("lastRunDt", processDt);
+		newProp.setProperty("baseDir", baseDir);
+		newProp.setProperty("imgBaseDir", imgBaseDir);
+		newProp.setProperty("aria2", aria2);
+		newProp.setProperty("token", token);
+		newProp.setProperty("skipIfExist", token);
+		
+		try {
+			newProp.store(new FileWriter("config.dat"), "Update last run date");
 		}
 		catch (Exception e) {
-			System.out.println("[!]can't find config.dat");
+			System.out.println("[!]can't write config.dat");
 			System.exit(255);
 		}
 	}

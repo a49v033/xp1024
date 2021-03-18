@@ -1,43 +1,24 @@
 package hqr;
 
-import hqr.action.InitCommonInfo;
-import java.io.BufferedReader;
-import java.io.File;
+import hqr.action.GetTopic;
 import java.io.FileReader;
-
+import java.util.Enumeration;
+import java.util.Properties;
 
 public class MainApp {
 
 	public static void main(String[] args) {
-		try(BufferedReader br = new BufferedReader(new FileReader(new File("config.dat")));) {
-			String content = "";
-			String host = "";
-			String startUrl = "";
-			String lastRunDt = "";
-			String baseDir = "";
-			String imgBaseDir = "";
-			while((content=br.readLine())!=null) {
-				String []arr = content.split("->");
-				if("host".equals(arr[0])) {
-					host = arr[1];
-				}
-				else if("startUrl".equals(arr[0])) {
-					startUrl = arr[1];
-				}
-				else if("lastRunDt".equals(arr[0])) {
-					lastRunDt = arr[1];
-				}
-				else if("baseDir".equals(arr[0])) {
-					baseDir = arr[1];
-				}				
-				else if("imgBaseDir".equals(arr[0])) {
-					imgBaseDir = arr[1];
-				}
+		Properties prop = new Properties();
+		
+		try{
+			prop.load(new FileReader("config.dat"));
+			Enumeration<?> enumeration = prop.propertyNames();
+			while(enumeration.hasMoreElements()){
+				String value = (String) enumeration.nextElement();
+				System.setProperty(value, prop.getProperty(value));
 			}
 			
-			br.close();
-			
-			InitCommonInfo grab = new InitCommonInfo(host, startUrl, lastRunDt, baseDir, imgBaseDir);
+			GetTopic grab = new GetTopic();
 			grab.execute();
 			
 		} catch (Exception e) {
