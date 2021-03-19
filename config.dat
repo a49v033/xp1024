@@ -3,6 +3,6 @@ startUrl=https://e1.a6def2ef910.pw/pw/thread.php?fid=3&page=
 lastRunDt=2021-03-06 14:31
 baseDir=D:\\temp
 imgBaseDir=D:\\temp
-aria2=http://107.173.149.207:6800/jsonrpc
-token=23456789
+aria2=http://127.1.1.1:6800/jsonrpc
+token=123456
 skipIfExist=Y
