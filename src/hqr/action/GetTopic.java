@@ -31,6 +31,7 @@ public class GetTopic {
 	private SendMsg msg;
 	private CloseableHttpClient httpclient = Brower.getCloseableHttpClient();
 	private HttpClientContext httpClientContext = Brower.getHttpClientContext();
+	private boolean isNormalTopicStart = false;
 	
 	private ArrayList<TopicInfo> topicList = new ArrayList<TopicInfo>();
 	
@@ -66,18 +67,37 @@ public class GetTopic {
 				if(cl.getStatusLine().getStatusCode()==200) {
 					Document bodys = Jsoup.parse(html);
 					//class = tr3 , then select all td
-					Elements trs = bodys.select(".tr3");
+					Element ajaxtable = bodys.getElementById("ajaxtable");
+					Elements trs = ajaxtable.select("tr");
 					
 					for (Element element : trs) {
 						//get all td 
 						Elements tds = element.select("td");
-						if(tds.size()==5) {
+						
+						if(!isNormalTopicStart) {
+							if(tds.size()!=0) {
+								if("普通主题".equals(tds.get(0).html())) {
+									isNormalTopicStart = true;
+								}
+								else {
+									continue;
+								}
+							}
+							else {
+								continue;
+							}
+						}
+						if(tds.size()==5&&isNormalTopicStart) {
 							String topicUrl = host+"/"+tds.get(0).select("a").attr("href");
 							String subject = tds.get(1).select("a").html();
 							String author = tds.get(2).select("a").html();
 							String issueDt = tds.get(4).select("a").html();
-							System.out.println("TopicUrl:"+topicUrl+" issueDt:"+issueDt);
-
+							System.out.println("TopicUrl:"+topicUrl+" issueDt:"+issueDt+" Author:"+author);
+							//not normal topic,skip it
+							if("".equals(author)) {
+								continue;
+							}
+							
 							if(compareDateTime(lastRunDt, issueDt)) {	
 								if(subject.indexOf("中文")>=0||subject.indexOf("中字")>=0) {
 									//save the topic url in the list
@@ -164,7 +184,7 @@ public class GetTopic {
 		Properties newProp = new Properties();
 		newProp.setProperty("host", host);
 		newProp.setProperty("startUrl", startUrl);
-		newProp.setProperty("lastRunDt", lastRunDt);
+		newProp.setProperty("lastRunDt", dt);
 		newProp.setProperty("baseDir", baseDir);
 		newProp.setProperty("imgBaseDir", imgBaseDir);
 		newProp.setProperty("aria2", aria2);

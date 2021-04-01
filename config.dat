@@ -1,11 +1,13 @@
-host=https://e1.a6def2ef910.pw/pw
-startUrl=https://e1.a6def2ef910.pw/pw/thread.php?fid=3&page=
-lastRunDt=2021-03-06 14:31
-baseDir=D:\\temp
-imgBaseDir=D:\\temp
-aria2=http://107.173.149.207:6800/jsonrpc
-token=23456789
-skipIfExist=Y
+#Update last run date
+#Thu Apr 01 20:42:58 CST 2021
+baseDir=D\:\\temp
+startUrl=https\://e1.a6def2ef910.pw/pw/thread.php?fid\=3&page\=
+agentid=1000002
 corpid=ww13a3890a2c0815e3
 corpsecret=l0Po7Af9xblCc1YZhc5atpKGuu_0h5k4jMmOSXXHtos
-agentid=1000002
+aria2=http\://127.0.0.1\:6800/jsonrpc
+skipIfExist=Y
+host=https\://e1.a6def2ef910.pw/pw
+imgBaseDir=D\:\\temp
+lastRunDt=2021-03-31 03\:31
+token=123456
