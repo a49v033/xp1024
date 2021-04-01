@@ -6,3 +6,6 @@ imgBaseDir=D:\\temp
 aria2=http://107.173.149.207:6800/jsonrpc
 token=23456789
 skipIfExist=Y
+corpid=ww13a3890a2c0815e3
+corpsecret=l0Po7Af9xblCc1YZhc5atpKGuu_0h5k4jMmOSXXHtos
+agentid=1000002

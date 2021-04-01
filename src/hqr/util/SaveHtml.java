@@ -15,15 +15,12 @@ public class SaveHtml {
 		this.content = content;
 	}
 	
-	public void execute() {
+	public void execute() throws Exception {
 		//save magnet url in readme.txt
-		try(BufferedWriter bw = new BufferedWriter(new FileWriter(new File(path+System.getProperty("file.separator")+fileName)));) {
-			bw.write(content);
-			bw.flush();
-		}
-		catch (Exception e) {
-			e.printStackTrace();
-		}
+		BufferedWriter bw = new BufferedWriter(new FileWriter(new File(path+System.getProperty("file.separator")+fileName)));
+		bw.write(content);
+		bw.flush();
+		bw.close();
 	}
 	
 }
