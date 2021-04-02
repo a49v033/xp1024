@@ -29,21 +29,18 @@ public class SaveImgAndMagnet {
 
 	}
 	
-	public void execute() {
+	public void execute() throws Exception{
 		File folder = new File(path);
 		if(!folder.exists()) {
 			folder.mkdirs();
 		}
 		
 		//save magnet url in readme.txt
-		try(BufferedWriter bw = new BufferedWriter(new FileWriter(new File(folder+System.getProperty("file.separator")+"readme.txt")));) {
-			bw.write(magnet);
-			bw.flush();
-		}
-		catch (Exception e) {
-			e.printStackTrace();
-		}
-		
+		BufferedWriter bw = new BufferedWriter(new FileWriter(new File(folder+System.getProperty("file.separator")+"readme.txt")));
+		bw.write(magnet);
+		bw.flush();
+		bw.close();
+
 		//save img
 		String []arr = imgUrl.split("/");
 		String fileName = arr[arr.length-1];
@@ -51,16 +48,12 @@ public class SaveImgAndMagnet {
 		
 		File f = new File(folder+System.getProperty("file.separator")+fileName);
 		if(!f.exists()||(f.exists()&&"N".equals(skipIfExist))) {
-			try(
-					CloseableHttpResponse cl = httpclient.execute(get, httpClientContext);
-					FileOutputStream fos = new FileOutputStream((new File(folder+System.getProperty("file.separator")+fileName)));
-				){
-					cl.getEntity().writeTo(fos);
-					fos.flush();
-				}
-				catch (Exception e) {
-					e.printStackTrace();
-				}
+			CloseableHttpResponse cl = httpclient.execute(get, httpClientContext);
+			FileOutputStream fos = new FileOutputStream((new File(folder+System.getProperty("file.separator")+fileName)));
+			cl.getEntity().writeTo(fos);
+			fos.flush();
+			fos.close();
+			cl.close();
 		}
 		else {
 			System.out.println(folder+System.getProperty("file.separator")+fileName+" exist, skip it");

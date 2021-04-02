@@ -26,8 +26,12 @@ public class Grab {
 	private String token;
 	private CloseableHttpClient httpclient;
 	private HttpClientContext httpClientContext;
+	private SendMsg msg;
 	
 	private StringBuilder html = new StringBuilder();
+	
+	private SimpleDateFormat yyyyMMddhhmm = new SimpleDateFormat("yyyy-MM-dd hh:mm");
+	private String processDt;
 	
 	private SimpleDateFormat yyyymm = new SimpleDateFormat("yyyyMM");
 	private String strYYYYMM = "999901";
@@ -66,7 +70,7 @@ public class Grab {
 			"	</script>";
 	
 	
-	public Grab(String topicUrl, String subject, String author, CloseableHttpClient httpclient, HttpClientContext httpClientContext) {
+	public Grab(String topicUrl, String subject, String author, CloseableHttpClient httpclient, HttpClientContext httpClientContext, SendMsg msg) {
 		super();
 		this.topicUrl = topicUrl;
 		this.subject = subject;
@@ -77,9 +81,12 @@ public class Grab {
 		this.token = System.getProperty("token");
 		this.httpclient = httpclient;
 		this.httpClientContext = httpClientContext;
+		this.msg = msg;
 		
 		Date dd = new Date();
 		strYYYYMM = yyyymm.format(dd);
+		
+		processDt = yyyyMMddhhmm.format(new Date());
 		
 		writeHtmlStart();
 		writeHeaderStart();
@@ -97,20 +104,35 @@ public class Grab {
 			html = EntityUtils.toString(cl.getEntity(), "UTF-8");
 		}
 		catch (Exception e) {
-			e.printStackTrace();
-			callOps("fail to process "+e);
+			String wxMsg = "日期："+processDt+"\n本次抓取结果：失败\n原因：连接 "+topicUrl +" 失败";
+			System.out.println(wxMsg+"\n"+e);
+			msg.execute(wxMsg);
+			System.exit(255);
 		}
-			
-		Document bodys = Jsoup.parse(html);
-		Elements content = bodys.select("#read_tpc");
 		
-		//save all the torrent uri -> uri maybe more than porns
+		Elements content = null;
+		Elements hrefs = null;
+		try {
+			Document bodys = Jsoup.parse(html);
+			content = bodys.select("#read_tpc");
+			
+			//save all the torrent uri -> uri maybe more than porns
+			hrefs = content.select("a");
+		}
+		catch (Exception e) {
+			String wxMsg = "日期："+processDt+"\n本次抓取结果：失败\n原因：连接 "+topicUrl +" 成功，但未获得预期的网页结果，例如获取的网页说权限不足，访问被禁止或者网页结构出现改变，具体请查看详细log";
+			System.out.println(wxMsg+"\n"+e);
+			msg.execute(wxMsg);
+			System.out.println("完整网页：\n"+html);
+			System.exit(255);
+		}
+		
 		ArrayList<String> uris = new ArrayList<String>();
-		Elements hrefs = content.select("a");
+		
 		//get the torrent url and split by the url
 		String torrentUrl = getTorrentUrl(hrefs);
 		if("".equals(torrentUrl)) {
-			callOps("can't find the split torrent uri");
+			callOps("can't find the split torrent uri, skip it");
 		}
 		else {
 			writeTitleStart(subject);
@@ -157,13 +179,24 @@ public class Grab {
 						writeBodyContent("<div><b>番号：  <font color=\"red\">"+folder+"</font></b><br>");
 						for (Element img : imgs) {
 							if("".equals(magnetUri)) {
-								callOps("fail to get the magnet url");
+								String wxMsg = "日期："+processDt+"\n本次抓取结果：失败\n原因：访问种子页面失败未能获得magnet url";
+								System.out.println(wxMsg);
+								msg.execute(wxMsg);
+								System.exit(255);
 							}
 							else {
 								String fullPath = baseDir+System.getProperty("file.separator")+strYYYYMM+System.getProperty("file.separator")+"resource"+System.getProperty("file.separator")+folder;
 								
 								SaveImgAndMagnet save = new SaveImgAndMagnet(img.attr("src"), fullPath, magnetUri, httpclient, httpClientContext);
-								save.execute();
+								try {
+									save.execute();
+								} catch (Exception e) {
+									String wxMsg = "日期："+processDt+"\n本次抓取结果：失败\n原因：保存图片文件到onedrive时失败，请检查路径配置";
+									System.out.println(wxMsg);
+									msg.execute(wxMsg);
+									e.printStackTrace();
+									System.exit(255);
+								}
 								
 								String []arr2 = img.attr("src").split("/");
 								String fileName = arr2[arr2.length-1];
@@ -190,8 +223,16 @@ public class Grab {
 			String []hns = topicUrl.split("/");
 			String htmlName = hns[hns.length-1];
 			SaveHtml sh = new SaveHtml(htmlName, baseDir+System.getProperty("file.separator")+strYYYYMM, this.html.toString());
-			sh.execute();
-			System.out.println("Saved Html file at "+baseDir+System.getProperty("file.separator")+htmlName);
+			try {
+				sh.execute();
+			} catch (Exception e) {
+				String wxMsg = "日期："+processDt+"\n本次抓取结果：失败\n原因：保存html文件到onedrive时失败，请检查路径配置";
+				System.out.println(wxMsg);
+				msg.execute(wxMsg);
+				e.printStackTrace();
+				System.exit(255);
+			}
+			System.out.println("Saved Html file at "+baseDir+System.getProperty("file.separator")+strYYYYMM+htmlName);
 		}
 	}
 	
